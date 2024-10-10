@@ -1,66 +1,21 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Basic Instruction & guidelines to smoothly run the project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+1. Download or clone the git repository in your local machine & run `php artisan serve` to start the server. This will redirect the base(`/`) route to the registration page (`/user/register`) for user registration.
 
-## About Laravel
+2. There are 3 Databse Seeder for 3 tables: `users`, `vaccine_centers` & `vaccine_slots`. `users` & `vaccine_slots` both are seeded with 50 entries while the `vaccine_centers` is seeded with 20 entries. If you don't want to seed or want selective seeding, please feel free to tinker the `DatabaseSeeder.php` file and comment/uncomment the seeders. All data is stored in the `database.sqlite` file.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+3. Once the User is registered, you can see and search the list of users in the `/user/index` route.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+4. There are 2 Jobs dispatched in 2 Custom Commands run with Scheduler in the `routes/console.php` file : `AssignVaccineSlotJob` + `AssignVaccineSlotCommand` to assign vaccine slots to users periodically (every 3 hours on weekdays) & `SendMailNotificationToScheduledUserJob` + `SendMailNotificationToScheduledUserCommand` to send mail notifications to users the night before their vaccination date. If you want to immediately test the schedulers, please feel free to change the periods into minutes or seconds, or directly run the `php artisan app:assign-vaccine-slot` to assign vaccine slots or `php artisan app:send-mail-notification-to-scheduled-user` to send mail notifications to users.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Notes answers Based on the note section of the coding test
 
-## Learning Laravel
+1. I tried to ensure that by making `nid` and `email` columns unique/indexed so that no 2 users have the same National ID or Email.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. Seeded with 20 Vaccine Centers
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3. Did that
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4. I tried to restrict user registration based on whether a vaccine center is available or not. In terms of the search functionality, I tried to select only specific columns and paginate 10 records per page load. For the 2 scheduled tasks, I tried to optimize query results by querying in chunks and bulk updating chunk results by Id's for chunked `users` and `vaccine_slots`. If I had more time, I'd probably try to lazy load or eager load data(if possible in that context) or try to reduce the number of raw queries executed to reduce database network latency.
 
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. If an additional requirement of sending SMS notifications is given, I'd create another task scheduler to periodically run the task as per requirements. If there're tens of thousands of users that are required to send SMS notification at a time, I'd probably try set a limit (if possible) or respond to the user for a waiting time. 
